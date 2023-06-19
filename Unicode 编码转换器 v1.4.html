@@ -26,8 +26,8 @@
                         <label><input type="checkbox" class="" v-model="not_convert_ascii"> 不转换ASCII字符</label>
                         <button class="btn btn-link" @click="paste"><i class="glyphicon glyphicon-paste">粘贴</i></button>
                     </div>
-                    <textarea class="form-control" rows="10" v-model="plaintext" @input="" placeholder="支持ASCII、任意国家文字、emoji表情、以及1F000的字符等"></textarea>
-                    <span class="help-block text-danger text-right">共 <span class="text-danger">{{count}}</span> 个字符。<small class="text-mute">ASCII、任意国家文字、emoji、以及1F000的字符均为1个字符</small></span>
+                    <textarea class="form-control" rows="10" v-model="plaintext" @input="" placeholder="支持ASCII、任意国家文字、emoji表情、以及10000~3FFFF的字符等"></textarea>
+                    <span class="help-block text-danger text-right">共 <span class="text-danger">{{count}}</span> 个字符。<small class="text-mute">ASCII、任意国家文字、emoji、以及10000~3FFFF的字符均为1个字符</small></span>
                 </div>
             </div>
         </div>

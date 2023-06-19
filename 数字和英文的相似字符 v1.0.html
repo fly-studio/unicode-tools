@@ -55,9 +55,9 @@
     <div id="app">
         <div class="container-fluid">
             <ul>
-                <li>红色字符表示它在unicode中有2个字符编码，为同一个字符。即增补编码->原编码</li>
+                <li>红色字符表示它在unicode中有2个字符编码，为同一个字符。即：增补编码->原编码</li>
                 <li>比如：平方²、立方³，为数字上标，原编码为<code>0x00b2</code>、<code>0x00b3</code>。
-                    后来Unicode表中增补了0、3-9的上标数字，为了保持连贯，<code>0x2072</code>、<code>0x2073</code>指向了原来的<code>0x00b2</code>、<code>0x00b3</code></li>
+                    后来Unicode表中增补了0-9的上标数字集（范围为：<code>0x2070 ~ 0x2079</code>），为了防止重复，<code>0x2072</code>、<code>0x2073</code>指向了原来的<code>0x00b2</code>、<code>0x00b3</code></li>
             </ul>
         </div>
         <div class="container-fluid">
