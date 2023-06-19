@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+<style>
+.cube-list {
+	margin-block-start: 1em;
+	margin-block-end: 1em;
+	margin-inline-start: 0px;
+	margin-inline-end: 0px;
+	padding-inline-start: 40px;
+}
+.cube-list li {
+	list-style: none;
+	display: list-item;
+	float: left;
+	width: 7.5%;
+	padding: 5px 0 5px 0;
+	font-size: 8px;
+	line-height: 1.4;
+	text-align: center;
+	background-color: #f9f9f9;
+	border: 1px solid #fff;
+}
+.cube-list li:hover {
+	color: #fff;
+	background-color: #563d7c;
+}
+.cube-list .original {
+	margin-top: 0px;
+	margin-bottom: 5px;
+	font-size: 24px;
+}
+.cube-list .hex {
+	font-size: 8px;
+	color:#ddd;
+}
+.cube-list .replace {
+	font-size: 14px;
+}
+.hex-cell {margin: 0 5px;font-size: 14px;}
+</style>
+</head>
+<body>
+    <h1 class="text-center">Unicode collation algorithm <small><a href="http://site.icu-project.org/">𝓲𝓬𝓾</a></small></h1>
+    <div class="text-center">
+        <small class="">Windows 7下可能无法显示大部分字符</small>
+    </div>
+    <div id="app">
+        <div class="container-fluid">
+            <ul>
+                <li>红色字符表示它在unicode中有2个字符编码，为同一个字符。即增补编码->原编码</li>
+                <li>比如：平方²、立方³，为数字上标，原编码为<code>0x00b2</code>、<code>0x00b3</code>。
+                    后来Unicode表中增补了0、3-9的上标数字，为了保持连贯，<code>0x2072</code>、<code>0x2073</code>指向了原来的<code>0x00b2</code>、<code>0x00b3</code></li>
+            </ul>
+        </div>
+        <div class="container-fluid">
+            <div v-for="(fields, title) in alphabet" class="row">
+                <h3 class="page-header">{{ title }}</h3>
+                <ul class="cube-list">
+                    <li v-for="(words, code) in fields">
+                        <template v-if="code in reserved">
+                            <div class="original text-danger">{{ usc(reserved[code]) }}</div>
+                            <div class="hex"><span class="text-warning">{{ dechex(code) }} -> {{ dechex(reserved[code]) }}</span></div>
+                            <div class="replace">{{ words }}</div>
+                        </template>
+                        <template v-else>
+                            <div class="original">{{ usc(code) }}</div>
+                            <div class="hex">{{ dechex(code) }}</div>
+                            <div class="replace">{{ words }}</div>
+                        </template>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+<script>
+const reserved = {
+    0x2072: 0x00b2, // ²
+    0x2073: 0x00b3, // ³
+    0x1D455: 0x210e, // ℎ
+    0x1D49D: 0x212c, // ℬ
+    0x1D4A0: 0x2130, // ℰ
+    0x1D4A1: 0x2131, // ℱ
+    0x1D4A3: 0x210b, // ℋ
+    0x1D4A4: 0x2110, // ℐ
+    0x1D4A7: 0x2112, // ℒ
+    0x1D4A8: 0x2133, // ℳ
+    0x1D4AD: 0x211B, // ℛ
+    0x1D4BA: 0x212F, // ℯ
+    0x1D4BC: 0x210A, // ℊ
+    0x1D4C4: 0x2134, // ℴ
+    0x1D506: 0x212d, // ℭ
+    0x1D50B: 0x210C, // ℌ
+    0x1D50C: 0x2111, // ℑ
+    0x1D515: 0x211C, // ℜ
+    0x1D51D: 0x2128, // ℨ
+    0x1D53A: 0x2102, // ℂ
+    0x1D53F: 0x210D, // ℍ
+    0x1D545: 0x2115, // ℕ
+    0x1D547: 0x2119, // ℙ
+    0x1D548: 0x211A, // ℚ
+    0x1D549: 0x211D, // ℝ
+    0x1D551: 0x2124, // ℤ
+    0x24b8: 0x00a9, // ©
+    0x24c5: 0x2117, // ℗
+    0x24c7: 0x00ae, // ®
+    0x1f1ad: 0x24c2, // Ⓜ
+    0x1f12b: 0x00A9, // ©
+    0x1f12c: 0x00AE, // ®
+}
+
+const numberTables = {
+    'Fullwidth ASCII variants': {0xFF10: '0-9'},
+    'Superscripts': {0x2070: '0', 0x00B9: '1', 0x2072: '2-9'}, // Chrome中会对Key进行排序，会导致显示为：1、0、2、3、4、5、6、7、8、9
+    'Subscripts': {0x2080: '0-9'},
+    'Circled numbers': {0x24EA: '0', 0x2460: '1-20', 0x3251: '21-35', 0x32B1: '36-50'},
+    'Parenthesized numbers': {0x2474: '1-20'},
+    'Number with full stop': {0x1F100: '0', 0x2488: '1-20'},
+    'Numbers with comma': {0x1F101: '0-9'},
+    'Dingbat circled digits': {0x24FF: '0', 0x2776: '1-10', 0x24EB: '21-20'},
+    'Double circled numbers': {0x24F5: '1-10'},
+    'Dingbat circled sans-serif digits': {0x1F10B: '0', 0x2780: '1-10'},
+    'Dingbat negative circled sans-serif digits': {0x1F10C: '0', 0x278A: '1-10'},
+    'Parenthesized ideographs': {0x3220: '1-10'},
+    'Circled numbers on black squares from ARIB STD B24': {0x3248: '10|20|30|40|50|60|70|80'},
+    'Circled ideographs': {0x3280: '1-10'},
+    'Telegraph symbols for months': {0x32C0: '1-12'},
+    'Telegraph symbols for days': {0x33E0: '1-31'},
+    'Telegraph symbols for hours': {0x3358: '0-23'},
+};
+
+const alphaTables = {
+    'Fullwidth Ascii Variants': {0xFF21: 'A-Z', 0xFF41: 'a-z'},
+    'Parenthesized Latin Letters': {0x1F110: 'A-Z', 0x249C: 'a-z'},
+    'Circled Latin letters': {0x24B6: 'A-Z|a-z',
+        0x1f12f: 'c', 0x1f12b: 'c',
+        0x1f12c: 'r', 0x1f1ad: 'm',
+    },
+    'Bold Symbols': {0x1d400: 'A-Z|a-z'},
+    'Italic Symbols': {0x1D434: 'A-Z|a-z'},
+    'Bold Italic Symbols': {0x1D468: 'A-Z|a-z'},
+    'Script Symbols': {0x1D49C: 'A-Z|a-z'},
+    'Bold Script Symbols': {0x1D4D0: 'A-Z|a-z'},
+    'Fraktur Symbols': {0x1D504: 'A-Z|a-z'},
+    'Double-struck Symbols': {0x1D538: 'A-Z|a-z'},
+    'Bold Fraktur Symbols': {0x1D56C: 'A-Z|a-z'},
+    'Sans-serif Symbols': {0x1D5A0: 'A-Z|a-z'},
+    'Sans-serif Bold Symbols': {0x1D5D4: 'A-Z|a-z'},
+    'Sans-serif Italic Symbols': {0x1D608: 'A-Z|a-z'},
+    'Sans-serif Bold Italic Symbols': {0x1D63C: 'A-Z|a-z'},
+    'Monospace Symbols': {0x1D670: 'A-Z|a-z'},
+    'Squared Latin letters': {0x1F130: 'A-Z'},
+    'White on black circled Latin letters': {0x1F150: 'A-Z'},
+    'White on black squared Latin letters': {0x1F170: 'A-Z'},
+    'Regional indicator symbols': {0x1F1E6: 'A-Z'},
+    'Other': {
+        0x1F14A: 'HV', 0x1F14B: 'MD', 0x1F14C: 'SD', 0x1F14D: 'SS', 0x1F14E: 'PPV', 0x1F14F: 'WC',
+        0x1F191: 'CL', 0x1F192: 'COOL', 0x1F193: 'FREE', 0x1F194: 'ID', 0x1F195: 'NEW', 0x1F196: 'NG', 0x1F197: 'OK', 0x1F198: 'SOS', 0x1F199: 'UP!', 0x1F19A: 'VS',
+        0x1F18A: 'p', 0x1F18B: 'ic', 0x1F18C: 'pa', 0x1F18D: 'sa', 0x1F18E: 'ab', 0x1F18F: 'wc',
+        0x1f12d: 'cd', 0x1f12e: 'wz', 0x1f16d: 'cc', 0x1f16e: 'c',
+        0x1F16A: 'mc',
+        0x1F16B: 'md',
+        0x1F16C: 'mr',
+        0x1F1AD: 'm',
+        0x2122: 'tm',
+        0x1F190: 'dj',
+        0x33c5: 'cd ',
+        0x1F19B: '3D', 0x1F19C: '2ndScr', 0x1F19D: '2K', 0x1F19E: '4K', 0x1F19F: '8K', 0x1F1A0: '5.1', 0x1F1A1: '7.1', 0x1F1A2: '22.2', 0x1F1A3: '60P', 0x1F1A4: '120P', 0x1F1A5: 'd', 0x1F1A6: 'HC', 0x1F1A7: 'HDR', 0x1F1A8: 'Hi-Res', 0x1F1A9: ':pssless', 0x1F1AA: 'SHV', 0x1F1AB: 'UHD', 0x1F1AC: 'VOD',
+    },
+};
+
+function rangeToWords(range, codepage) {
+  var res = [];
+  var step1 = range.split('|');
+  step1.forEach(function(value) {
+    if (value.indexOf('-') !== -1) {
+      var matches;
+      if ((matches = /^([\d]+)\-([\d]+)$/.exec(value)) !== null) {
+        for (var i = parseInt(matches[1]); i <= parseInt(matches[2]); i++) {
+          res[codepage++] = i;
+        }
+      } else if ((matches = /^([a-z]+)\-([a-z]+)$/i.exec(value)) !== null) {
+        for (var i = matches[1].charCodeAt(0); i <= Math.min(matches[1].charCodeAt(0) + 26, matches[2].charCodeAt(0)); i++) {
+          res[codepage++] = String.fromCharCode(i);
+        }
+      }
+    } else {
+      res[codepage++] = value;
+    }
+  });
+
+  return res;
+}
+
+
+const { createApp } = Vue
+
+createApp({
+    data() {
+      return {
+        reserved: reserved,
+      }
+    },
+    computed: {
+        alphabet() {
+            let res = {};
+            for (let [title, fields] of Object.entries(Object.assign({}, numberTables, alphaTables))) {
+                res[title] = {};
+                for (let [codepage, range] of Object.entries(fields)) {
+                    res[title] = Object.assign(res[title], rangeToWords(range, codepage));
+                }
+            }
+            return res;
+        }
+    },
+    methods: {
+        dechex(number) {
+            number = parseInt(number);
+            let hex = number.toString(16);
+            return hex.padStart(4, '0');
+        },
+        usc(code) {
+            return String.fromCodePoint(code);
+        }
+    }
+  }).mount('#app')
+
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>文字转Unicode v1.4</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+
+<div id="app">
+    <div class="container">
+        <h1 class="page-header text-center">文字转Unicode v1.4</h1>
+    </div>
+    <div class="container">
+        <div class="col-md-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="col-md-8"> <strong class="">输入原文：</strong></div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-12 text-right">
+                        <label><input type="checkbox" class="" v-model="not_convert_ascii"> 不转换ASCII字符</label>
+                        <button class="btn btn-link" @click="paste"><i class="glyphicon glyphicon-paste">粘贴</i></button>
+                    </div>
+                    <textarea class="form-control" rows="10" v-model="plaintext" @input="" placeholder="支持ASCII、任意国家文字、emoji表情、以及1F000的字符等"></textarea>
+                    <span class="help-block text-danger text-right">共 <span class="text-danger">{{count}}</span> 个字符。<small class="text-mute">ASCII、任意国家文字、emoji、以及1F000的字符均为1个字符</small></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="col-md-12">
+            <h4 class="page-header">HTML</h4>
+            <dl>
+                <dt>
+                    10进制：
+                    <div class="pull-right" v-show="html!=''">
+                        <a class="" href="javascript:" title="新窗口打开" @click="openAndShow(html)" ><i class="glyphicon glyphicon-eye-open text-warning"></i></a>&nbsp;
+                        <a class="" href="javascript:" title="复制内容" @click="copy(html)"><i class="glyphicon glyphicon-copy text-success"></i></a>
+                    </div>
+                    <div class="clearfix"></div>
+                </dt>
+                <dd>
+                    <pre><code>{{html || " "}}</code></pre>
+                </dd>
+                <dt>
+                    16进制：
+                    <div class="pull-right" v-show="html_hex!=''">
+                        <a class="" href="javascript:" title="新窗口打开" @click="openAndShow(html_hex)" ><i class="glyphicon glyphicon-eye-open text-warning"></i></a>&nbsp;
+                        <a class="" href="javascript:" title="复制内容" @click="copy(html_hex)"><i class="glyphicon glyphicon-copy text-success"></i></a>
+                    </div>
+                    <div class="clearfix"></div>
+                </dt>
+                <dd>
+                    <pre><code>{{html_hex || " "}}</code></pre>
+                </dd>
+            </dl>
+            <span class="help-block">HTML支持10进制、16进制两种写法。</span>
+        </div>
+        <div class="col-md-12">
+            <h4 class="page-header">
+                Javascript、正则表达式
+                <div class="pull-right" v-show="html_hex!=''">
+                    <small><a class="" href="javascript:" title="复制内容" @click="copy(javascript)"><i class="glyphicon glyphicon-copy text-success"></i></a></small>
+                </div>
+                <div class="clearfix"></div>
+            </h4>
+            <pre><code>{{javascript || " "}}</code></pre>
+            <span class="help-block">注意：Javascript中支持<code>"\uffff"</code>和<code>"\xff"</code>两种写法，但是后者只支持<code>0xff</code>以内的字符</span>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp } = Vue
+
+// 返回Unicode编码数组
+function wordsToCodes(words) {
+    let result = [];
+
+    for (let i = 0; i < words.length; i++) {
+        let s = words[i].codePointAt(0);
+        if (s >= 0xD800 && s <= 0xDBFF) {
+            let s1 = words[i + 1].codePointAt(0);
+            if (s1 >= 0xDC00 && s1 <= 0xDFFF) {
+                result.push((s - 0xD800) * 0x400 + s1 - 0xDC00 + 0x10000);
+                i++;
+                continue;
+            }
+        }
+        result.push(s);
+    }
+    return result;
+}
+
+// 根据上面的数组，返回Unicode编码字符串
+function codestoString(codes, prefix = '&#', postfix = ';', not_convert_ascii = true, hex = false) {
+    let result = '';
+    for (let i = 0; i < codes.length; i++) {
+        let s = codes[i];
+        if (s <= 255 && not_convert_ascii) {
+            result += String.fromCodePoint(s);
+        } else {
+            result += prefix + (hex ? s.toString(16) : s) + postfix;
+        }
+    }
+    return result;
+}
+
+createApp({
+    data(){
+        return {
+            not_convert_ascii: true,
+            plaintext: '',
+            count: 0,
+
+            html: '',
+            html_hex: '',
+            javascript: '',
+
+        }
+    },
+    methods: {
+        copy(value) {
+            navigator.clipboard.writeText(value).then(() => {
+            })
+        },
+        paste() {
+            navigator.clipboard.readText().then(text => {
+                this.plaintext = text;
+            })
+        },
+        openAndShow(value) {
+            let win = window.open();
+            win.document.write(value);
+            win.document.close();
+        },
+        covert(words) {
+            let codes = wordsToCodes(words);
+            this.count = codes.length;
+            this.html = codestoString(codes, '&#', ';', this.not_convert_ascii);
+            this.html_hex = codestoString(codes, '&#x', ';', this.not_convert_ascii, true);
+            this.javascript = codestoString(codes, '\\u', '', this.not_convert_ascii, true);
+        }
+    },
+    watch: {
+        not_convert_ascii() {
+            this.covert(this.plaintext);
+        },
+        plaintext() {
+            this.covert(this.plaintext);
+        }
+    },
+
+}).mount('#app')
+
+</script>
+
+</body>
+</html>
