@@ -1,0 +1,125 @@
+
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Unicode 编码转换器 v1.3</title>
+
+<style type="text/css">
+body { background-color: white; margin-top: 24px; }
+h1 { font: normal 20px '黑体'; text-align: center; color: black; }
+td, textarea, input, select { font: normal 12px 'Courier New'; color: black; }
+</style>
+
+<script language="JavaScript">
+function $(obj) {
+	return document.getElementById(obj);
+}
+function paste() { //粘帖
+	var clipboard = window.clipboardData.getData('text');
+	clipboard == null ? alert('您的剪切板中没有任何文本内容') : source.value = clipboard;
+}
+
+function A2U() { //ASCII -> Unicode转换
+	var source = $('source'),result = $('result'),hexresult = $('hexresult'),convertASCII = $('convertASCII');
+	if (source.value == '') { alert('文本框中没有代码'); return; }
+	result.value = '';hexresult.value = '';
+	var s,prefix = $('prefix').value,hexprefix = $('hexprefix').value,postfix = $('postfix').value,hexpostfix = $('hexpostfix').value;
+	var result = '',hexresult = '';
+	for (var i=0; i<source.value.length; i++){
+		s = source.value.charCodeAt(i);
+		if (s <= 255 && convertASCII.checked){
+			s = source.value.substr(i,1);result += s;hexresult += s;
+		} else {
+			result += prefix + s + postfix;
+			hexresult += hexprefix + s.toString(16) + hexpostfix;
+		}
+
+	}
+	$('result').value = result;
+	$('hexresult').value = hexresult;
+}
+
+function U2A() { //Unicode -> ASCII转换
+	/*var code = $('result').value.match(/&#(\d);/g); //十进制格式
+	var code1 = $('hexresult').value.match(/&#x([0-9a-f]+);/g); //16进制格式
+	var s;
+	if (code == null && code1 == null) { alert('文本框中没有合法的Unicode代码'); return; }
+	$('source').value = '';
+	if (code != null){
+	  for (var i=0; i< code.length; i++){
+		  s = parsetInt(code[i].replace(/[&#;]/g, ''),10);
+	    $('source').value += String.fromCharCode(s);}
+	}
+	else if(code1 != null){
+	  for (var i=0; i<code1.length; i++){
+			s = '0' + code1[i].replace(/[&#;]/g, ''); //0xFF
+			s = s.toString(10);
+	    $('source').value += String.fromCharCode(s);}
+	}*/
+	$('u2a').innerHTML = $('result').value || $('hexresult').value;
+	$('source').value = $('u2a').innerHTML;
+
+}
+
+function preview() { //预览
+	var win = window.open();
+	win.document.open('text/html', 'replace');
+	win.document.writeln($('result').value);
+	win.document.close();
+}
+
+function copy(id) { //复制
+  var obj;
+	if(id==1){
+	  obj=$('result');
+	}else{
+	  obj=$('hexresult');
+	}
+	obj.value == '' ? alert('没有需要复制的代码') : window.clipboardData.setData('text', obj.value);
+}
+</script>
+
+</head>
+
+<body>
+<table width="750" align="center" cellpadding="0" cellspacing="0"><tbody><tr><td>
+<h1>Unicode 编码转换器 1.4</h1>
+<hr>
+<input type="button" value="1.粘帖" onclick="paste();">（将需要进行转换的代码粘帖到下面的文本框中）
+<textarea style="width:750px;height:180px;" id="source"></textarea><br>
+2.<input type="button" value="ASCII -&gt; Unicode" onclick="A2U();"> <input type="button" value="Unicode -&gt; ASCII" onclick="U2A();">（点击相应格式转换按钮将完成代码的转换）
+<input type="checkbox" id="convertASCII" checked="checked"><label for="convertASCII">不转换普通ASCII字符</label>
+<table width="750" align="center" border="1" bordercolor="#000000">
+	<tbody><tr>
+		<td align="center"><b>10进制:</b></td>
+		<td align="center"><b>16进制:</b></td>
+	</tr>
+	<tr>
+		<td width="375">
+			前缀:<input type="text" value="&amp;#" id="prefix" size="12"> &nbsp;后缀:<input type="text" value=";" id="postfix" size="12"> &nbsp;<input type="button" onclick="javascript:$(&#39;prefix&#39;).value=&#39;&amp;#&#39;;$(&#39;postfix&#39;).value=&#39;;&#39;" value="恢复默认"><br>
+			<textarea style="width:375px;height:180px;" id="result"></textarea><br>
+			<input type="button" value="3.复制" onclick="javascript:copy(1);">（复制转换后的代码到剪贴板中）
+		</td>
+		<td width="375">
+			前缀:<input type="text" value="&amp;#x" id="hexprefix" size="12"> &nbsp;后缀:<input type="text" value=";" id="hexpostfix" size="12"> &nbsp;<input type="button" onclick="javascript:$(&#39;hexprefix&#39;).value=&#39;&amp;#x&#39;;$(&#39;hexpostfix&#39;).value=&#39;;&#39;" value="恢复默认"><br>
+			<textarea style="width:375px;height:180px;" id="hexresult"></textarea><br>
+			<input type="button" value="4.复制" onclick="javascript:copy(2);">（复制转换后的代码到剪贴板中）
+		</td>
+	</tr>
+</tbody></table>
+<div style="display:none;" id="u2a"></div>
+<hr>
+<input type="button" value="5.预览" onclick="javascript:preview();">（查看转换后的网页效果）
+<hr>
+<b>小知识:</b><br>
+例如:字符:"汉字"<br>
+网页里面的字符可以写作："&amp;#27721;&amp;#23383;(&amp;#x6c49;&amp;#x5b57;)"<br>
+而JavaScript中可以写作："var str = '\u6c49\u5b57';"<br>
+正则表达式中也可以写作："\u6c49\u5b57"<br>
+<br>作者:邓晓光 2007-6-6<br>
+History:<br>
+-----v1.3------2012-02-20----------<br>
+* javascript兼容各大浏览器(除了操作剪贴板)<br>
+* 修正了部分标签，使其符合w3c标准
+
+
+
+</td></tr></tbody></table></body></html>
